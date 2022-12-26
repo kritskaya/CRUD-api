@@ -6,4 +6,6 @@ export enum StatusCode {
 
 export enum ErrorMessage {
   RESOURSE_NOT_FOUND = 'Requested resource is not found',
+  USER_NOT_FOUND = 'Requested user is not found',
+  NO_SUCH_METHOD = 'No such request method',
 }
