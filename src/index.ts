@@ -1,7 +1,9 @@
 import http from 'http';
+import * as dotenv from 'dotenv';
 import { requestHandler } from './app/requestHandler.js';
 
-const PORT = 4000;
+dotenv.config();
+const PORT = process.env.PORT;
 
 const server = http.createServer(requestHandler);
 
