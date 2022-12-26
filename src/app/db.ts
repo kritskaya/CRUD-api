@@ -3,7 +3,7 @@ import { ErrorMessage, StatusCode } from './constants.js';
 import { User } from './entity/user.js';
 import { ServerResponse } from './ServerResponse.js';
 
-const users: User[] = [];
+let users: User[] = [];
 
 export const getUsers = () => {
   return new ServerResponse(StatusCode.OK, JSON.stringify(users));
@@ -34,7 +34,7 @@ export const createUser = (data: string) => {
   const newUser = new User(id, username, age, hobbies);
   users.push(newUser);
 
-  return new ServerResponse(StatusCode.OK, JSON.stringify(newUser));
+  return new ServerResponse(StatusCode.CREATED, JSON.stringify(newUser));
 };
 
 export const updateUser = (id: string, data: string) => {
@@ -58,4 +58,19 @@ export const updateUser = (id: string, data: string) => {
   user.hobbies = hobbies;
 
   return new ServerResponse(StatusCode.OK, JSON.stringify(user));
+};
+
+export const deleteUser = (id: string) => {
+  if (!validate(id)) {
+    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+  }
+
+  const user = users.find((item) => item.id === id);
+  if (!user) {
+    return new ServerResponse(StatusCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+  }
+
+  users = [...users.filter((item) => item.id !== id)];
+
+  return new ServerResponse(StatusCode.NO_CONTENT, '');
 };
