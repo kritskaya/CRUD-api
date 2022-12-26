@@ -12,4 +12,5 @@ export enum ErrorMessage {
   USER_NOT_FOUND = 'Requested user is not found',
   NO_SUCH_METHOD = 'No such request method',
   INVALID_DATA = 'Format of received data is invalid',
+  SERVER_ERROR = 'Internal server error',
 }

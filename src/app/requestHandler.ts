@@ -11,25 +11,31 @@ export const requestHandler = async (
   req: http.IncomingMessage,
   res: http.ServerResponse
 ) => {
-  const method = req.method || '';
-  const body = (await getRequestBody(req)) || '';
+  try {
+    const method = req.method || '';
+    const body = (await getRequestBody(req)) || '';
 
-  const incomingUrl = req.url;
-  const matchPattern = incomingUrl?.match(new RegExp(`^${baseUrl}(/[A-Za-z0-9-]+)?$`));
+    const incomingUrl = req.url;
+    const matchPattern = incomingUrl?.match(
+      new RegExp(`^${baseUrl}(/[A-Za-z0-9-]+)?/?$`)
+    );
 
-  res.setHeader('Content-type', 'application-json');
+    res.setHeader('Content-type', 'application-json');
 
-  if (incomingUrl && matchPattern) {
-    const url = new URL(incomingUrl, `${protocol}${req.headers.host}`);
-    const id = matchPattern[1]?.slice(1) || '';
-    const response = execute(method, id, body);
+    if (incomingUrl && matchPattern) {
+      const url = new URL(incomingUrl, `${protocol}${req.headers.host}`);
+      const id = matchPattern[1]?.slice(1) || '';
+      const response = execute(method, id, body);
 
-    res.writeHead(response.statusCode);
-    res.end(`${response.statusCode} ${response.body}`);
-    // console.log(url);
-  } else {
-    res.writeHead(StatusCode.BAD_REQUEST);
-    res.end(`${StatusCode.BAD_REQUEST} ${ErrorMessage.RESOURSE_NOT_FOUND}`);
+      res.writeHead(response.statusCode);
+      res.end(`${response.statusCode} ${response.body}`);
+    } else {
+      res.writeHead(StatusCode.BAD_REQUEST);
+      res.end(`${StatusCode.BAD_REQUEST} ${ErrorMessage.RESOURSE_NOT_FOUND}`);
+    }
+  } catch {
+    res.writeHead(StatusCode.SERVER_ERROR);
+    res.end(`${StatusCode.SERVER_ERROR} ${ErrorMessage.SERVER_ERROR}`);
   }
 };
 
