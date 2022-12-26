@@ -1,7 +1,7 @@
 import http from 'http';
 import { URL } from 'url';
 import { ErrorMessage, StatusCode } from './constants.js';
-import { createUser, getUser, getUsers } from './db.js';
+import { createUser, getUser, getUsers, updateUser } from './db.js';
 import { ServerResponse } from './ServerResponse.js';
 
 const baseUrl = '/api/users';
@@ -48,6 +48,8 @@ const execute = (method: string, id: string, body: string) => {
         );
       }
       return createUser(body);
+    case 'PUT':
+      return updateUser(id, body);
     default: {
       throw new Error(ErrorMessage.NO_SUCH_METHOD);
     }

@@ -36,3 +36,26 @@ export const createUser = (data: string) => {
 
   return new ServerResponse(StatusCode.OK, JSON.stringify(newUser));
 };
+
+export const updateUser = (id: string, data: string) => {
+  if (!validate(id)) {
+    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+  }
+
+  const { username, age, hobbies } = JSON.parse(data) as User;
+
+  if (!id || !username || !age || !hobbies) {
+    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+  }
+
+  const user = users.find((item) => item.id === id);
+  if (!user) {
+    return new ServerResponse(StatusCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+  }
+
+  user.username = username;
+  user.age = age;
+  user.hobbies = hobbies;
+
+  return new ServerResponse(StatusCode.OK, JSON.stringify(user));
+};
