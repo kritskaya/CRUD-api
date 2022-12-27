@@ -28,12 +28,12 @@ export const requestHandler = async (
       res.writeHead(response.statusCode, { 'Content-Type': 'application/json' });
       res.end(`${response.body}`);
     } else {
-      res.writeHead(StatusCode.BAD_REQUEST, { 'Content-Type': 'application/json' });
-      res.end(`${StatusCode.BAD_REQUEST} ${ErrorMessage.RESOURSE_NOT_FOUND}`);
+      res.writeHead(StatusCode.NOT_FOUND, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(ErrorMessage.RESOURSE_NOT_FOUND));
     }
   } catch {
     res.writeHead(StatusCode.SERVER_ERROR, { 'Content-Type': 'application/json' });
-    res.end(`${StatusCode.SERVER_ERROR} ${ErrorMessage.SERVER_ERROR}`);
+    res.end(JSON.stringify(ErrorMessage.SERVER_ERROR));
   }
 };
 
@@ -48,7 +48,7 @@ const execute = (method: string, id: string, body: string) => {
       if (id) {
         return new ServerResponse(
           StatusCode.BAD_REQUEST,
-          ErrorMessage.RESOURSE_NOT_FOUND
+          JSON.stringify(ErrorMessage.RESOURSE_NOT_FOUND)
         );
       }
       return createUser(body);
