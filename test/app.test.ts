@@ -1,14 +1,16 @@
 import request from 'supertest';
 import { server } from '../src';
 import { User } from '../src/app/entity/user';
+import { v4 as uuidv4, v4, validate } from 'uuid';
+import { ErrorMessage } from '../src/app/constants';
 
 const app = request(server);
 
-describe('Scenario #1 - all operations in a positive case', () => {
-  afterAll(() => {
-    server.close();
-  });
+afterAll(() => {
+  server.close();
+});
 
+describe('Scenario #1 - all operations in a positive case', () => {
   it('should return empty array for the first GET /api/users request', async () => {
     const response = await app.get('/api/users');
 
@@ -80,6 +82,38 @@ describe('Scenario #1 - all operations in a positive case', () => {
     expect(response.statusCode).toBe(204);
 
     const response2 = await app.get('/api/users/' + createdUserId);
-    // expect(response.statusCode).toBe(404);
+    expect(response2.statusCode).toBe(404);
+  });
+});
+
+describe('Scenario #2 - user with specified id does not exist', () => {
+  it('should return empty array for the first GET /api/users request', async () => {
+    const response = await app.get('/api/users');
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toEqual([]);
+  });
+
+  const noExistId = v4();
+  it('should return 404 and corresponding message if user does not exist for the GET request', async () => {
+    const response = await app.get('/api/users/' + noExistId);
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toBe(ErrorMessage.USER_NOT_FOUND);
+  });
+
+  it('should return 404 and corresponding message if user does not exist for the PUT request', async () => {
+    const user = { username: 'User', age: 30, hobbies: ['postcrossing', 'reading'] };
+    const response = await app.put('/api/users/' + noExistId).send(user);
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toBe(ErrorMessage.USER_NOT_FOUND);
+  });
+
+  it('should return 404 and corresponding message if user does not exist for the DELETE request', async () => {
+    const response = await app.delete('/api/users/' + noExistId);
+
+    expect(response.statusCode).toBe(404);
+    expect(response.body).toBe(ErrorMessage.USER_NOT_FOUND);
   });
 });

@@ -20,8 +20,6 @@ export const requestHandler = async (
       new RegExp(`^${baseUrl}(/[A-Za-z0-9-]+)?/?$`)
     );
 
-    // res.setHeader('Content-type', 'application-json');
-
     if (incomingUrl && matchPattern) {
       const url = new URL(incomingUrl, `${protocol}${req.headers.host}`);
       const id = matchPattern[1]?.slice(1) || '';
