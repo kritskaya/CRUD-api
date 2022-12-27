@@ -11,12 +11,12 @@ export const getUsers = () => {
 
 export const getUser = (id: string) => {
   if (!validate(id)) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
   }
 
   const user = users.find((item) => item.id === id);
   if (!user) {
-    return new ServerResponse(StatusCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    return new ServerResponse(StatusCode.NOT_FOUND, JSON.stringify(ErrorMessage.USER_NOT_FOUND));
   }
 
   return new ServerResponse(StatusCode.OK, JSON.stringify(user));
@@ -26,7 +26,7 @@ export const createUser = (data: string) => {
   const { username, age, hobbies } = JSON.parse(data) as User;
 
   if (!username || !age || !hobbies) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
   }
 
   const id = uuidv4();
@@ -39,18 +39,18 @@ export const createUser = (data: string) => {
 
 export const updateUser = (id: string, data: string) => {
   if (!validate(id)) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
   }
 
   const { username, age, hobbies } = JSON.parse(data) as User;
 
   if (!id || !username || !age || !hobbies) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
   }
 
   const user = users.find((item) => item.id === id);
   if (!user) {
-    return new ServerResponse(StatusCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    return new ServerResponse(StatusCode.NOT_FOUND, JSON.stringify(ErrorMessage.USER_NOT_FOUND));
   }
 
   user.username = username;
@@ -62,15 +62,15 @@ export const updateUser = (id: string, data: string) => {
 
 export const deleteUser = (id: string) => {
   if (!validate(id)) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, ErrorMessage.INVALID_DATA);
+    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
   }
 
   const user = users.find((item) => item.id === id);
   if (!user) {
-    return new ServerResponse(StatusCode.NOT_FOUND, ErrorMessage.USER_NOT_FOUND);
+    return new ServerResponse(StatusCode.NOT_FOUND, JSON.stringify(ErrorMessage.USER_NOT_FOUND));
   }
 
   users = [...users.filter((item) => item.id !== id)];
 
-  return new ServerResponse(StatusCode.NO_CONTENT, '');
+  return new ServerResponse(StatusCode.NO_CONTENT, JSON.stringify(''));
 };
