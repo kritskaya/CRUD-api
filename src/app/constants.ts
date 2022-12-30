@@ -14,3 +14,7 @@ export enum ErrorMessage {
   INVALID_DATA = 'Format of received data is invalid',
   SERVER_ERROR = 'Internal server error',
 }
+
+export const DEFAULT_PORT = 4000;
+
+export const CLUSTER_MODE = 'cluster';

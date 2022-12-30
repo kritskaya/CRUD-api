@@ -1,39 +1,93 @@
+import cluster from 'cluster';
+import { resolve } from 'dns';
 import http from 'http';
+import os from 'os';
 import { URL } from 'url';
+import { clusterMode, cpusCount, PORT } from '../index.js';
 import { ErrorMessage, StatusCode } from './constants.js';
 import { createUser, deleteUser, getUser, getUsers, updateUser } from './db.js';
 import { ServerResponse } from './ServerResponse.js';
+import { getHostName } from './utils/getHostName.js';
 
 const baseUrl = '/api/users';
 const protocol = 'http://';
+
+// const port = process.env.PORT;
+let currentPort;
+let portIncrement = 0;
 
 export const requestHandler = async (
   req: http.IncomingMessage,
   res: http.ServerResponse
 ) => {
-  try {
-    const method = req.method || '';
+  if (clusterMode && cluster.isMaster) {
+    console.log('cluster-mode primary process');
+    currentPort = Number(PORT) + 1 + (portIncrement++ % cpusCount);
+    // console.log('currentPort', currentPort);
+
     const body = (await getRequestBody(req)) || '';
 
-    const incomingUrl = req.url;
-    const matchPattern = incomingUrl?.match(
-      new RegExp(`^${baseUrl}(/[A-Za-z0-9-]+)?/?$`)
-    );
+    const hostname = getHostName(req.headers.host || '');
+    console.log(hostname);
 
-    if (incomingUrl && matchPattern) {
-      const url = new URL(incomingUrl, `${protocol}${req.headers.host}`);
-      const id = matchPattern[1]?.slice(1) || '';
-      const response = execute(method, id, body);
+    const options = {
+      hostname: hostname,
+      port: currentPort,
+      path: req.url,
+      method: req.method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body),
+      },
+    };
 
-      res.writeHead(response.statusCode, { 'Content-Type': 'application/json' });
-      res.end(`${response.body}`);
-    } else {
-      res.writeHead(StatusCode.NOT_FOUND, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(ErrorMessage.RESOURSE_NOT_FOUND));
+    let content = '';
+    const request = http.request(options, (response) => {
+      response.on('data', (chunk) => {
+        content += chunk;
+      });
+
+      response.on('end', () => {
+        const statusCode = response.statusCode || StatusCode.SERVER_ERROR;
+
+        res.writeHead(statusCode, { 'Content-Type': 'application/json' });
+        res.end(content);
+      })
+    });
+
+    request.write(body);
+    request.end();
+
+
+
+    // const workerId = portIncrement++ % cpusCount + 1;
+    // if (!cluster.workers) return;
+    // cluster.workers[workerId]?.send(req.url || '');
+  } else {
+    try {
+      const method = req.method || '';
+      const body = (await getRequestBody(req)) || '';
+
+      const incomingUrl = req.url;
+      const matchPattern = incomingUrl?.match(
+        new RegExp(`^${baseUrl}(/[A-Za-z0-9-]+)?/?$`)
+      );
+
+      if (incomingUrl && matchPattern) {
+        const url = new URL(incomingUrl, `${protocol}${req.headers.host}`);
+        const id = matchPattern[1]?.slice(1) || '';
+        const response = execute(method, id, body);
+
+        res.writeHead(response.statusCode, { 'Content-Type': 'application/json' });
+        res.end(`${response.body}`);
+      } else {
+        res.writeHead(StatusCode.NOT_FOUND, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify(ErrorMessage.RESOURSE_NOT_FOUND));
+      }
+    } catch {
+      res.writeHead(StatusCode.SERVER_ERROR, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(ErrorMessage.SERVER_ERROR));
     }
-  } catch {
-    res.writeHead(StatusCode.SERVER_ERROR, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(ErrorMessage.SERVER_ERROR));
   }
 };
 
