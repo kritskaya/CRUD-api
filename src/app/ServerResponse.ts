@@ -1,5 +1,3 @@
-import { User } from "./entity/user";
-
 export class ServerResponse {
   #statusCode: number;
   #body: string;

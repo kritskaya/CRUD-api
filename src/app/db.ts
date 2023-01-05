@@ -1,76 +1,146 @@
+import cluster from 'cluster';
+import EventEmitter from 'events';
 import { v4 as uuidv4, validate } from 'uuid';
 import { ErrorMessage, StatusCode } from './constants.js';
 import { User } from './entity/user.js';
 import { ServerResponse } from './ServerResponse.js';
+import { MasterRequestedData } from './types.js';
 
-let users: User[] = [];
+class DB extends EventEmitter {
+  private users: User[] = [];
 
-export const getUsers = () => {
-  return new ServerResponse(StatusCode.OK, JSON.stringify(users));
-};
+  private sendDataToMaster = async (
+    data: MasterRequestedData
+  ): Promise<ServerResponse> => {
+    return new Promise(
+      (resolve) =>
+        process.send &&
+        process.send(data, () => {
+          this.once(data.method, (message) =>
+            resolve(new ServerResponse(message.statusCode, message.body))
+          );
+        })
+    );
+  };
 
-export const getUser = (id: string) => {
-  if (!validate(id)) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
-  }
+  getUsers = async (): Promise<ServerResponse> => {
+    if (cluster.isWorker) {
+      const data: MasterRequestedData = { method: 'getUsers', args: [] };
+      return await this.sendDataToMaster(data);
+    }
 
-  const user = users.find((item) => item.id === id);
-  if (!user) {
-    return new ServerResponse(StatusCode.NOT_FOUND, JSON.stringify(ErrorMessage.USER_NOT_FOUND));
-  }
+    return new ServerResponse(StatusCode.OK, JSON.stringify(this.users));
+  };
 
-  return new ServerResponse(StatusCode.OK, JSON.stringify(user));
-};
+  getUser = async (id: string) => {
+    if (cluster.isWorker) {
+      const data: MasterRequestedData = { method: 'getUser', args: [id] };
+      return await this.sendDataToMaster(data);
+    }
 
-export const createUser = (data: string) => {
-  const { username, age, hobbies } = JSON.parse(data) as User;
+    if (!validate(id)) {
+      return new ServerResponse(
+        StatusCode.BAD_REQUEST,
+        JSON.stringify(ErrorMessage.INVALID_DATA)
+      );
+    }
 
-  if (!username || !age || !hobbies) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
-  }
+    const user = this.users.find((item) => item.id === id);
+    if (!user) {
+      return new ServerResponse(
+        StatusCode.NOT_FOUND,
+        JSON.stringify(ErrorMessage.USER_NOT_FOUND)
+      );
+    }
 
-  const id = uuidv4();
+    return new ServerResponse(StatusCode.OK, JSON.stringify(user));
+  };
 
-  const newUser = new User(id, username, age, hobbies);
-  users.push(newUser);
+  createUser = async (body: string) => {
+    if (cluster.isWorker) {
+      const data: MasterRequestedData = { method: 'createUser', args: [body] };
+      return await this.sendDataToMaster(data);
+    }
 
-  return new ServerResponse(StatusCode.CREATED, JSON.stringify(newUser));
-};
+    const { username, age, hobbies } = JSON.parse(body) as User;
 
-export const updateUser = (id: string, data: string) => {
-  if (!validate(id)) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
-  }
+    if (!username || !age || !hobbies) {
+      return new ServerResponse(
+        StatusCode.BAD_REQUEST,
+        JSON.stringify(ErrorMessage.INVALID_DATA)
+      );
+    }
 
-  const { username, age, hobbies } = JSON.parse(data) as User;
+    const id = uuidv4();
 
-  if (!id || !username || !age || !hobbies) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
-  }
+    const newUser = new User(id, username, age, hobbies);
+    this.users.push(newUser);
 
-  const user = users.find((item) => item.id === id);
-  if (!user) {
-    return new ServerResponse(StatusCode.NOT_FOUND, JSON.stringify(ErrorMessage.USER_NOT_FOUND));
-  }
+    return new ServerResponse(StatusCode.CREATED, JSON.stringify(newUser));
+  };
 
-  user.username = username;
-  user.age = age;
-  user.hobbies = hobbies;
+  updateUser = async (id: string, body: string) => {
+    if (cluster.isWorker) {
+      const data: MasterRequestedData = { method: 'updateUser', args: [id, body] };
+      return await this.sendDataToMaster(data);
+    }
 
-  return new ServerResponse(StatusCode.OK, JSON.stringify(user));
-};
+    if (!validate(id)) {
+      return new ServerResponse(
+        StatusCode.BAD_REQUEST,
+        JSON.stringify(ErrorMessage.INVALID_DATA)
+      );
+    }
 
-export const deleteUser = (id: string) => {
-  if (!validate(id)) {
-    return new ServerResponse(StatusCode.BAD_REQUEST, JSON.stringify(ErrorMessage.INVALID_DATA));
-  }
+    const { username, age, hobbies } = JSON.parse(body) as User;
 
-  const user = users.find((item) => item.id === id);
-  if (!user) {
-    return new ServerResponse(StatusCode.NOT_FOUND, JSON.stringify(ErrorMessage.USER_NOT_FOUND));
-  }
+    if (!id || !username || !age || !hobbies) {
+      return new ServerResponse(
+        StatusCode.BAD_REQUEST,
+        JSON.stringify(ErrorMessage.INVALID_DATA)
+      );
+    }
 
-  users = [...users.filter((item) => item.id !== id)];
+    const user = this.users.find((item) => item.id === id);
+    if (!user) {
+      return new ServerResponse(
+        StatusCode.NOT_FOUND,
+        JSON.stringify(ErrorMessage.USER_NOT_FOUND)
+      );
+    }
 
-  return new ServerResponse(StatusCode.NO_CONTENT, JSON.stringify(''));
-};
+    user.username = username;
+    user.age = age;
+    user.hobbies = hobbies;
+
+    return new ServerResponse(StatusCode.OK, JSON.stringify(user));
+  };
+
+  deleteUser = async (id: string) => {
+    if (cluster.isWorker) {
+      const data: MasterRequestedData = { method: 'deleteUser', args: [id] };
+      return await this.sendDataToMaster(data);
+    }
+
+    if (!validate(id)) {
+      return new ServerResponse(
+        StatusCode.BAD_REQUEST,
+        JSON.stringify(ErrorMessage.INVALID_DATA)
+      );
+    }
+
+    const user = this.users.find((item) => item.id === id);
+    if (!user) {
+      return new ServerResponse(
+        StatusCode.NOT_FOUND,
+        JSON.stringify(ErrorMessage.USER_NOT_FOUND)
+      );
+    }
+
+    this.users = [...this.users.filter((item) => item.id !== id)];
+
+    return new ServerResponse(StatusCode.NO_CONTENT, JSON.stringify(''));
+  };
+}
+
+export const db = new DB();
