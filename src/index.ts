@@ -62,6 +62,12 @@ if (clusterMode) {
   });
 }
 
+server.on('error', (error: any) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error('Address with this port is already in use...');
+  }
+});
+
 process.on('exit', () => {
   server.close();
 });

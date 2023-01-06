@@ -10,7 +10,7 @@ import { getHostName } from './utils/getHostName.js';
 const baseUrl = '/api/users';
 const protocol = 'http://';
 
-let currentPort;
+let currentPort: number;
 let portIncrement = 0;
 
 export const requestHandler = async (
@@ -42,6 +42,8 @@ export const requestHandler = async (
       });
 
       response.on('end', () => {
+        console.log(`server ${hostname}:${currentPort} response on ${req.method} request`);
+        
         const statusCode = response.statusCode || StatusCode.SERVER_ERROR;
 
         res.writeHead(statusCode, { 'Content-Type': 'application/json' });
