@@ -19,3 +19,9 @@ export const DEFAULT_PORT = 4000;
 
 export const CLUSTER_MODE = 'cluster';
 
+export enum Method {
+  GET = 'GET',
+  POST = 'POST',
+  PUT = 'PUT',
+  DELETE = 'DELETE',
+}

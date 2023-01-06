@@ -1,7 +1,7 @@
 import cluster from 'cluster';
 import EventEmitter from 'events';
 import { v4 as uuidv4, validate } from 'uuid';
-import { ErrorMessage, StatusCode } from './constants.js';
+import { ErrorMessage, Method, StatusCode } from './constants.js';
 import { User } from './entity/user.js';
 import { ServerResponse } from './ServerResponse.js';
 import { MasterRequestedData } from './types.js';
@@ -25,16 +25,15 @@ class DB extends EventEmitter {
 
   getUsers = async (): Promise<ServerResponse> => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: 'getUsers', args: [] };
+      const data: MasterRequestedData = { method: Method.GET, args: [] };
       return await this.sendDataToMaster(data);
     }
-
     return new ServerResponse(StatusCode.OK, JSON.stringify(this.users));
   };
 
   getUser = async (id: string) => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: 'getUser', args: [id] };
+      const data: MasterRequestedData = { method: Method.GET, args: [id] };
       return await this.sendDataToMaster(data);
     }
 
@@ -58,7 +57,7 @@ class DB extends EventEmitter {
 
   createUser = async (body: string) => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: 'createUser', args: [body] };
+      const data: MasterRequestedData = { method: Method.POST, args: ['', body] };
       return await this.sendDataToMaster(data);
     }
 
@@ -81,7 +80,7 @@ class DB extends EventEmitter {
 
   updateUser = async (id: string, body: string) => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: 'updateUser', args: [id, body] };
+      const data: MasterRequestedData = { method: Method.PUT, args: [id, body] };
       return await this.sendDataToMaster(data);
     }
 
@@ -118,7 +117,7 @@ class DB extends EventEmitter {
 
   deleteUser = async (id: string) => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: 'deleteUser', args: [id] };
+      const data: MasterRequestedData = { method: Method.DELETE, args: [id] };
       return await this.sendDataToMaster(data);
     }
 

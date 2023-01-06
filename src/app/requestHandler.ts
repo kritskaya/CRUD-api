@@ -1,18 +1,15 @@
 import cluster from 'cluster';
-import { resolve } from 'dns';
 import http from 'http';
 import { db } from './db.js';
 import { URL } from 'url';
 import { clusterMode, cpusCount, PORT } from '../index.js';
-import { ErrorMessage, StatusCode } from './constants.js';
-// import { createUser, deleteUser, getUser, getUsers, updateUser } from './db.js';
+import { ErrorMessage, Method, StatusCode } from './constants.js';
 import { ServerResponse } from './ServerResponse.js';
 import { getHostName } from './utils/getHostName.js';
 
 const baseUrl = '/api/users';
 const protocol = 'http://';
 
-// const port = process.env.PORT;
 let currentPort;
 let portIncrement = 0;
 
@@ -82,14 +79,14 @@ export const requestHandler = async (
   }
 };
 
-const execute = async (method: string, id: string, body: string) => {
+export const execute = async (method: string, id: string, body: string) => {
   switch (method) {
-    case 'GET':
+    case Method.GET:
       if (!id) {
         return await db.getUsers();
       }
-      return db.getUser(id);
-    case 'POST':
+      return await db.getUser(id);
+    case Method.POST:
       if (id) {
         return new ServerResponse(
           StatusCode.BAD_REQUEST,
@@ -97,9 +94,9 @@ const execute = async (method: string, id: string, body: string) => {
         );
       }
       return await db.createUser(body);
-    case 'PUT':
+    case Method.PUT:
       return await db.updateUser(id, body);
-    case 'DELETE':
+    case Method.DELETE:
       return await db.deleteUser(id);
     default: {
       throw new Error(ErrorMessage.NO_SUCH_METHOD);

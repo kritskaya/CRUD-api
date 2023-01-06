@@ -2,7 +2,7 @@ import http from 'http';
 import os from 'os';
 import cluster from 'cluster';
 import * as dotenv from 'dotenv';
-import { requestHandler } from './app/requestHandler.js';
+import { execute, requestHandler } from './app/requestHandler.js';
 import { CLUSTER_MODE, DEFAULT_PORT } from './app/constants.js';
 import { db } from './app/db.js';
 import { ServerResponse } from './app/ServerResponse.js';
@@ -32,20 +32,24 @@ if (clusterMode) {
     }
 
     cluster.on('message', async (worker, message: MasterRequestedData) => {
-      if (message.method in db) {
-        const result: ServerResponse = await db[message.method](...message.args);
+      const result: ServerResponse = await execute(
+        message.method,
+        message.args[0],
+        message.args[1]
+      );
 
-        const dataToChildProcess: DataToChildProcess = {
-          method: message.method,
-          data: { statusCode: result.statusCode, body: result.body },
-        };
+      const dataToChildProcess: DataToChildProcess = {
+        method: message.method,
+        data: { statusCode: result.statusCode, body: result.body },
+      };
 
-        worker.send(dataToChildProcess);
-      }
+      worker.send(dataToChildProcess);
     });
   } else {
     server.listen(process.env.PORT, () => {
-      console.log(`Worker server ${process.pid} started on port:${process.env.PORT}`);
+      console.log(
+        `Worker server with pid=${process.pid} started on port:${process.env.PORT}`
+      );
     });
 
     process.on('message', (message: DataToChildProcess) => {
