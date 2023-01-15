@@ -17,6 +17,8 @@
 
         npm i
 
+5. rename file `.env.example` to `.env` for running application on the port specified in this file (default is 4000)
+
 ## How to run application
 
 
