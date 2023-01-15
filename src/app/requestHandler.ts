@@ -17,7 +17,7 @@ export const requestHandler = async (
   req: http.IncomingMessage,
   res: http.ServerResponse
 ) => {
-  if (clusterMode && cluster.isMaster) {
+  if (clusterMode && cluster.isPrimary) {
     currentPort = Number(PORT) + 1 + (portIncrement++ % cpusCount);
 
     const body = (await getRequestBody(req)) || '';
@@ -43,7 +43,7 @@ export const requestHandler = async (
 
       response.on('end', () => {
         console.log(
-          `server ${hostname}:${currentPort} response on ${req.method} request`
+          `server ${hostname}:${currentPort} response on the ${req.method} request`
         );
 
         const statusCode = response.statusCode || StatusCode.SERVER_ERROR;
@@ -100,7 +100,7 @@ export const execute = async (method: string, id: string, body: string) => {
       if (id) {
         return new ServerResponse(
           StatusCode.BAD_REQUEST,
-          JSON.stringify({ message: ErrorMessage.RESOURSE_NOT_FOUND})
+          JSON.stringify({ message: ErrorMessage.RESOURSE_NOT_FOUND })
         );
       }
       return await db.createUser(body);
