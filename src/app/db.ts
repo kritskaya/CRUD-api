@@ -40,7 +40,7 @@ class DB extends EventEmitter {
     if (!validate(id)) {
       return new ServerResponse(
         StatusCode.BAD_REQUEST,
-        JSON.stringify(ErrorMessage.INVALID_DATA)
+        JSON.stringify({ message: ErrorMessage.INVALID_DATA })
       );
     }
 
@@ -48,7 +48,7 @@ class DB extends EventEmitter {
     if (!user) {
       return new ServerResponse(
         StatusCode.NOT_FOUND,
-        JSON.stringify(ErrorMessage.USER_NOT_FOUND)
+        JSON.stringify({ message: ErrorMessage.USER_NOT_FOUND })
       );
     }
 
@@ -57,7 +57,10 @@ class DB extends EventEmitter {
 
   createUser = async (body: string) => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: Method.POST, args: ['', body] };
+      const data: MasterRequestedData = {
+        method: Method.POST,
+        args: ['', body],
+      };
       return await this.sendDataToMaster(data);
     }
 
@@ -66,7 +69,7 @@ class DB extends EventEmitter {
     if (!username || !age || !hobbies) {
       return new ServerResponse(
         StatusCode.BAD_REQUEST,
-        JSON.stringify(ErrorMessage.INVALID_DATA)
+        JSON.stringify({ message: ErrorMessage.INVALID_DATA })
       );
     }
 
@@ -80,14 +83,17 @@ class DB extends EventEmitter {
 
   updateUser = async (id: string, body: string) => {
     if (cluster.isWorker) {
-      const data: MasterRequestedData = { method: Method.PUT, args: [id, body] };
+      const data: MasterRequestedData = {
+        method: Method.PUT,
+        args: [id, body],
+      };
       return await this.sendDataToMaster(data);
     }
 
     if (!validate(id)) {
       return new ServerResponse(
         StatusCode.BAD_REQUEST,
-        JSON.stringify(ErrorMessage.INVALID_DATA)
+        JSON.stringify({ message: ErrorMessage.INVALID_DATA })
       );
     }
 
@@ -96,7 +102,7 @@ class DB extends EventEmitter {
     if (!id || !username || !age || !hobbies) {
       return new ServerResponse(
         StatusCode.BAD_REQUEST,
-        JSON.stringify(ErrorMessage.INVALID_DATA)
+        JSON.stringify({ message: ErrorMessage.INVALID_DATA })
       );
     }
 
@@ -104,7 +110,7 @@ class DB extends EventEmitter {
     if (!user) {
       return new ServerResponse(
         StatusCode.NOT_FOUND,
-        JSON.stringify(ErrorMessage.USER_NOT_FOUND)
+        JSON.stringify({ message: ErrorMessage.USER_NOT_FOUND })
       );
     }
 
@@ -124,7 +130,7 @@ class DB extends EventEmitter {
     if (!validate(id)) {
       return new ServerResponse(
         StatusCode.BAD_REQUEST,
-        JSON.stringify(ErrorMessage.INVALID_DATA)
+        JSON.stringify({ message: ErrorMessage.INVALID_DATA })
       );
     }
 
@@ -132,7 +138,7 @@ class DB extends EventEmitter {
     if (!user) {
       return new ServerResponse(
         StatusCode.NOT_FOUND,
-        JSON.stringify(ErrorMessage.USER_NOT_FOUND)
+        JSON.stringify({ message: ErrorMessage.USER_NOT_FOUND })
       );
     }
 

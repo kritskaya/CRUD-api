@@ -42,8 +42,10 @@ export const requestHandler = async (
       });
 
       response.on('end', () => {
-        console.log(`server ${hostname}:${currentPort} response on ${req.method} request`);
-        
+        console.log(
+          `server ${hostname}:${currentPort} response on ${req.method} request`
+        );
+
         const statusCode = response.statusCode || StatusCode.SERVER_ERROR;
 
         res.writeHead(statusCode, { 'Content-Type': 'application/json' });
@@ -68,15 +70,21 @@ export const requestHandler = async (
         const id = matchPattern[1]?.slice(1) || '';
         const response = await execute(method, id, body);
 
-        res.writeHead(response.statusCode, { 'Content-Type': 'application/json' });
+        res.writeHead(response.statusCode, {
+          'Content-Type': 'application/json',
+        });
         res.end(`${response.body}`);
       } else {
-        res.writeHead(StatusCode.NOT_FOUND, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(ErrorMessage.RESOURSE_NOT_FOUND));
+        res.writeHead(StatusCode.NOT_FOUND, {
+          'Content-Type': 'application/json',
+        });
+        res.end(JSON.stringify({ message: ErrorMessage.RESOURSE_NOT_FOUND }));
       }
     } catch (err) {
-      res.writeHead(StatusCode.SERVER_ERROR, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(ErrorMessage.SERVER_ERROR));
+      res.writeHead(StatusCode.SERVER_ERROR, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ message: ErrorMessage.SERVER_ERROR }));
     }
   }
 };
@@ -92,7 +100,7 @@ export const execute = async (method: string, id: string, body: string) => {
       if (id) {
         return new ServerResponse(
           StatusCode.BAD_REQUEST,
-          JSON.stringify(ErrorMessage.RESOURSE_NOT_FOUND)
+          JSON.stringify({ message: ErrorMessage.RESOURSE_NOT_FOUND})
         );
       }
       return await db.createUser(body);
