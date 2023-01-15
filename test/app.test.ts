@@ -38,7 +38,9 @@ describe('Scenario #1 - all operations in a positive case', () => {
 
     expect(response.statusCode).toBe(200);
     expect(response.body.length).toBe(1);
-    expect(response.body.find((item: User) => item.id === createdUserId)).toBeTruthy();
+    expect(
+      response.body.find((item: User) => item.id === createdUserId)
+    ).toBeTruthy();
   });
 
   it('should return corresponding user data for the GET /api/users/:id request', async () => {
@@ -52,7 +54,11 @@ describe('Scenario #1 - all operations in a positive case', () => {
   });
 
   it('shoud return array with corresponding data after the PUT /api/users/:id request', async () => {
-    const user = { username: 'User', age: 30, hobbies: ['postcrossing', 'reading'] };
+    const user = {
+      username: 'User',
+      age: 30,
+      hobbies: ['postcrossing', 'reading'],
+    };
     const response = await app.put('/api/users/' + createdUserId).send(user);
 
     expect(response.statusCode).toBe(200);
@@ -103,22 +109,26 @@ describe('Scenario #2 - user with specified id does not exist', () => {
     const response = await app.get('/api/users/' + noExistId);
 
     expect(response.statusCode).toBe(404);
-    expect(response.body).toBe(ErrorMessage.USER_NOT_FOUND);
+    expect(response.body.message).toBe(ErrorMessage.USER_NOT_FOUND);
   });
 
   it('should return 404 and corresponding message if user does not exist for the PUT request', async () => {
-    const user = { username: 'User', age: 30, hobbies: ['postcrossing', 'reading'] };
+    const user = {
+      username: 'User',
+      age: 30,
+      hobbies: ['postcrossing', 'reading'],
+    };
     const response = await app.put('/api/users/' + noExistId).send(user);
 
     expect(response.statusCode).toBe(404);
-    expect(response.body).toBe(ErrorMessage.USER_NOT_FOUND);
+    expect(response.body.message).toBe(ErrorMessage.USER_NOT_FOUND);
   });
 
   it('should return 404 and corresponding message if user does not exist for the DELETE request', async () => {
     const response = await app.delete('/api/users/' + noExistId);
 
     expect(response.statusCode).toBe(404);
-    expect(response.body).toBe(ErrorMessage.USER_NOT_FOUND);
+    expect(response.body.message).toBe(ErrorMessage.USER_NOT_FOUND);
   });
 });
 
@@ -136,22 +146,26 @@ describe('Scenario #3 - validate input data', () => {
     const response = await app.get('/api/users/' + invalidId);
 
     expect(response.statusCode).toBe(400);
-    expect(response.body).toBe(ErrorMessage.INVALID_DATA);
+    expect(response.body.message).toBe(ErrorMessage.INVALID_DATA);
   });
 
   it('should return 400 and corresponding message if userId is invalid for the PUT request', async () => {
-    const user = { username: 'User', age: 30, hobbies: ['postcrossing', 'reading'] };
+    const user = {
+      username: 'User',
+      age: 30,
+      hobbies: ['postcrossing', 'reading'],
+    };
     const response = await app.put('/api/users/' + invalidId).send(user);
 
     expect(response.statusCode).toBe(400);
-    expect(response.body).toBe(ErrorMessage.INVALID_DATA);
+    expect(response.body.message).toBe(ErrorMessage.INVALID_DATA);
   });
 
   it('should return 400 and corresponding message if userId is invalid for the DELETE request', async () => {
     const response = await app.delete('/api/users/' + invalidId);
 
     expect(response.statusCode).toBe(400);
-    expect(response.body).toBe(ErrorMessage.INVALID_DATA);
+    expect(response.body.message).toBe(ErrorMessage.INVALID_DATA);
   });
 
   it('should return 400 and corresponding message if POST request body does not contain required fields', async () => {
@@ -161,21 +175,21 @@ describe('Scenario #3 - validate input data', () => {
 
     const response1 = await app.put('/api/users/' + invalidId).send(user1);
     expect(response1.statusCode).toBe(400);
-    expect(response1.body).toBe(ErrorMessage.INVALID_DATA);
+    expect(response1.body.message).toBe(ErrorMessage.INVALID_DATA);
 
     const response2 = await app.put('/api/users/' + invalidId).send(user2);
     expect(response2.statusCode).toBe(400);
-    expect(response2.body).toBe(ErrorMessage.INVALID_DATA);
+    expect(response2.body.message).toBe(ErrorMessage.INVALID_DATA);
 
     const response3 = await app.put('/api/users/' + invalidId).send(user3);
     expect(response3.statusCode).toBe(400);
-    expect(response3.body).toBe(ErrorMessage.INVALID_DATA);
+    expect(response3.body.message).toBe(ErrorMessage.INVALID_DATA);
   });
 
   it('should return 404 and corresponding human-friendly message in case of requests to non-existing endpoints', async () => {
     const response1 = await app.get('/api/user');
     expect(response1.statusCode).toBe(404);
-    expect(response1.body).toBe(ErrorMessage.RESOURSE_NOT_FOUND);
+    expect(response1.body.message).toBe(ErrorMessage.RESOURSE_NOT_FOUND);
 
     // const response2 = await app.post('/api/users/path');
     // expect(response2.statusCode).toBe(404);
